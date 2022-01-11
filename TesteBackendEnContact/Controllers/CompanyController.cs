@@ -9,7 +9,7 @@ using TesteBackendEnContact.Repository.Interface;
 namespace TesteBackendEnContact.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("controller")]
     public class CompanyController : ControllerBase
     {
         private readonly ILogger<CompanyController> _logger;
@@ -19,28 +19,41 @@ namespace TesteBackendEnContact.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost("companies")]
         public async Task<ActionResult<ICompany>> Post(SaveCompanyRequest company, [FromServices] ICompanyRepository companyRepository)
         {
             return Ok(await companyRepository.SaveAsync(company.ToCompany()));
         }
 
         [HttpDelete]
-        public async Task Delete(int id, [FromServices] ICompanyRepository companyRepository)
+        [Route("companies/{id}")]
+        public async Task<IActionResult> Delete(int id, [FromServices] ICompanyRepository companyRepository)
         {
             await companyRepository.DeleteAsync(id);
+            return Ok("Removido com sucesso!");
         }
 
         [HttpGet]
+        [Route("companies")]
         public async Task<IEnumerable<ICompany>> Get([FromServices] ICompanyRepository companyRepository)
         {
             return await companyRepository.GetAllAsync();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ICompany> Get(int id, [FromServices] ICompanyRepository companyRepository)
+        [HttpGet]
+        [Route("companies/{id}")]
+        public async Task<ICompany> GetById(int id, [FromServices] ICompanyRepository companyRepository)
         {
             return await companyRepository.GetAsync(id);
         }
+
+        [HttpPut]
+        [Route("companies")]
+        public async Task<IActionResult> PutAsync(UpdateCompanyRequest company, [FromServices] ICompanyRepository companyRepository)
+        {
+            return Ok(await companyRepository.SaveAsync(company.ToCompany()));
+        }
+
+        
     }
 }

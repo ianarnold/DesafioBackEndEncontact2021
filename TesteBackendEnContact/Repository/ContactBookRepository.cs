@@ -3,6 +3,7 @@ using Dapper.Contrib.Extensions;
 using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using TesteBackendEnContact.Core.Domain.ContactBook;
 using TesteBackendEnContact.Core.Interface.ContactBook;
@@ -26,7 +27,10 @@ namespace TesteBackendEnContact.Repository
             using var connection = new SqliteConnection(databaseConfig.ConnectionString);
             var dao = new ContactBookDao(contactBook);
 
-            dao.Id = await connection.InsertAsync(dao);
+            if (dao.Id == 0)
+                dao.Id = await connection.InsertAsync(dao);
+            else
+                await connection.UpdateAsync(dao);
 
             return dao.Export();
         }
@@ -35,11 +39,13 @@ namespace TesteBackendEnContact.Repository
         public async Task DeleteAsync(int id)
         {
             using var connection = new SqliteConnection(databaseConfig.ConnectionString);
+            var sql = new StringBuilder();
 
-            // TODO
-            var sql = "";
+            sql.AppendLine("DELETE FROM ContactBook WHERE Id = @id;");
+            sql.AppendLine("UPDATE Contact SET ContactBookId = null WHERE ContactBookId = @id;");
 
-            await connection.ExecuteAsync(sql);
+            await connection.ExecuteAsync(sql.ToString(), new { id });
+
         }
 
 
@@ -84,7 +90,7 @@ namespace TesteBackendEnContact.Repository
         public ContactBookDao(IContactBook contactBook)
         {
             Id = contactBook.Id;
-            Name = Name;
+            Name = contactBook.Name;
         }
 
         public IContactBook Export() => new ContactBook(Id, Name);
